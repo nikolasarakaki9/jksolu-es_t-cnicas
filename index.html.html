@@ -372,6 +372,33 @@ nav a:hover{ color:var(--text-light); }
   background-color:rgb(255,140,40);
   transition:opacity .6s ease, background-color .6s ease;
 }
+/* Ampliar imagens ao clicar */
+.compare-photo, .cert-card img, .banner-inner img{ cursor:zoom-in; }
+.lightbox{
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  background:rgba(10,15,22,0.9);
+  opacity:0; visibility:hidden;
+  transition:opacity .25s ease, visibility .25s ease;
+  cursor:zoom-out;
+}
+.lightbox.is-open{ opacity:1; visibility:visible; }
+.lightbox img{
+  max-width:94vw; max-height:90vh;
+  width:auto; height:auto;
+  object-fit:contain;
+  border-radius:6px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  cursor:default;
+}
+.lightbox-close{
+  position:absolute; top:14px; right:16px;
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid rgba(244,246,247,0.35);
+  background:rgba(27,36,48,0.8); color:#fff;
+  font-size:1.4rem; line-height:1; cursor:pointer;
+}
 .thermo-hint{
   font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.08em; text-transform:uppercase;
   color:var(--text-light-muted);
@@ -601,7 +628,7 @@ footer{ background:var(--bg-dark-2); color:var(--text-light); padding:76px 0 28p
         <span class="eyebrow-sep" aria-hidden="true">·</span>
         <span class="eyebrow-item">Máquinas de lavar</span>
       </div>
-      <h1>Quando o calor aperta ou a lavagem falha, alguém precisa consertar direito. <span>Esse alguém somos nós.</span></h1>
+      <h1>Quando o calor aperta ou a lavagem falha, alguém precisa consertar direito. <span>Esse alguém é a JK Soluções Técnicas.</span></h1>
       <p class="hero-sub">
         Manutenção e conserto de ar-condicionado, geladeiras, fogões e máquinas de lavar em Campo Grande - MS,
         com diagnóstico técnico, peças de qualidade e garantia por escrito em cada serviço.
@@ -913,6 +940,11 @@ footer{ background:var(--bg-dark-2); color:var(--text-light); padding:76px 0 28p
   <svg viewBox="0 0 32 32"><path d="M16.02 3C9.4 3 4 8.4 4 15.02c0 2.24.62 4.34 1.7 6.14L4 29l8.02-1.66a12 12 0 0 0 4 .68C22.64 28.02 28 22.62 28 15.99 28 9.4 22.6 3 16.02 3Zm7.02 17.1c-.3.83-1.7 1.6-2.35 1.7-.6.1-1.36.14-2.2-.14a17 17 0 0 1-2-.73 13.6 13.6 0 0 1-5.2-4.6 6.1 6.1 0 0 1-1.27-3.24c0-1.02.53-1.5.72-1.72.2-.2.42-.25.56-.25h.4c.13 0 .3 0 .47.36.2.4.63 1.47.68 1.58.06.1.1.24.02.4-.08.15-.12.24-.24.37-.13.14-.26.32-.37.43-.13.13-.26.27-.11.53.14.27.63 1.05 1.36 1.7.94.85 1.75 1.13 2 1.26.27.13.42.1.58-.06.16-.16.66-.77.84-1.04.18-.27.35-.22.6-.13.24.1 1.55.73 1.82.87.27.13.44.2.5.32.08.13.08.72-.2 1.55Z"/></svg>
 </a>
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Imagem ampliada" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Fechar imagem">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
 <div class="temp-tint" id="tempTint" aria-hidden="true"></div>
 
 <script>
@@ -1161,6 +1193,47 @@ footer{ background:var(--bg-dark-2); color:var(--text-light); padding:76px 0 28p
       var answer = openItem.querySelector('.faq-answer');
       answer.style.maxHeight = answer.scrollHeight + 'px';
     }
+  });
+
+
+  /* ==========================================================
+     AMPLIAR IMAGENS (banner, antes/depois e certificado)
+     Clique na imagem para ampliar; clique fora dela, no X ou
+     aperte Esc para voltar ao normal.
+  ========================================================== */
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxClose = document.getElementById('lightboxClose');
+  var zoomSelector = '.compare-photo, .cert-card img, .banner-inner img';
+
+  function openLightbox(img){
+    lightboxImg.src = img.currentSrc || img.src;
+    lightboxImg.alt = img.alt || '';
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll(zoomSelector).forEach(function(img){
+    img.setAttribute('tabindex', '0');
+    img.setAttribute('role', 'button');
+    img.addEventListener('click', function(){ openLightbox(img); });
+    img.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openLightbox(img); }
+    });
+  });
+
+  lightbox.addEventListener('click', function(e){
+    if(e.target !== lightboxImg){ closeLightbox(); }
+  });
+  lightboxClose.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && lightbox.classList.contains('is-open')){ closeLightbox(); }
   });
 
 })();
